@@ -1,9 +1,10 @@
 #include <stdio.h>
-extern int* intVal;
+extern int intVal;
+extern char strVal;
 int main(void){
-    printf("%d", intVal);
-    printf("%d", *intVal);
-    (*intVal)++;
-    printf("%d", *intVal);
+    printf("%d\n", intVal);
+    intVal++;
+    printf("%d\n", intVal);
+    printf("%s\n", (char*)(&strVal));
     return 0;
 }

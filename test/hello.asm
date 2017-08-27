@@ -1,3 +1,4 @@
 [section .data]
-global intVal
-intVal: dw 100
+global intVal, strVal
+intVal: dd 100
+strVal: db 'hello world!',0
