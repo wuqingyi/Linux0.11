@@ -1,5 +1,5 @@
 [BITS 32]
-extern stack_start, main, printk
+extern _stack_start, _main, _printk
 global _idt, _gdt, _pg_dir, _tmp_floppy_area
 _pg_dir:
 startup_32:
@@ -8,7 +8,7 @@ startup_32:
     mov es, ax
     mov fs, ax
     mov gs, ax
-    lss esp, [stack_start]
+    lss esp, [_stack_start]
 
     call setup_idt
     call setup_gdt
@@ -18,7 +18,7 @@ startup_32:
     mov es, ax
     mov fs, ax
     mov gs, ax
-    lss esp, [stack_start]
+    lss esp, [_stack_start]
 
     ;check that A20 really IS enable
     xor eax, eax
@@ -90,7 +90,7 @@ after_page_tables:
     push dword 0
     push dword 0
     push L6
-    push main
+    push _main
     jmp setup_paging
 L6:
     jmp L6
@@ -111,7 +111,7 @@ ignore_int:
     mov es, ax
     mov fs, ax
     push int_msg
-    call printk
+    call _printk
     pop eax
     pop fs
     pop es
