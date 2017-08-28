@@ -1,5 +1,5 @@
 [BITS 32]
-extern _stack_start, _main, _printk
+extern stack_start, main, printk
 global _idt, _gdt, _pg_dir, _tmp_floppy_area
 _pg_dir:
 startup_32:
@@ -8,7 +8,7 @@ startup_32:
     mov es, ax
     mov fs, ax
     mov gs, ax
-    lss esp, [_stack_start]
+    lss esp, [stack_start]
 
     call setup_idt
     call setup_gdt
@@ -18,7 +18,7 @@ startup_32:
     mov es, ax
     mov fs, ax
     mov gs, ax
-    lss esp, [_stack_start]
+    lss esp, [stack_start]
 
     ;check that A20 really IS enable
     xor eax, eax
@@ -69,19 +69,6 @@ setup_gdt:
     lgdt [gdt_descr]
     ret
 
-times 1000h-($-$$) db 0
-pg0:
-
-times 2000h-($-$$) db 0
-pg1:
-
-times 3000h-($-$$) db 0
-pg2:
-
-times 4000h-($-$$) db 0
-pg3:
-
-times 5000h-($-$$) db 0
 _tmp_floppy_area:
     times 1024 db 0
 
@@ -90,7 +77,7 @@ after_page_tables:
     push dword 0
     push dword 0
     push L6
-    push _main
+    push main
     jmp setup_paging
 L6:
     jmp L6
@@ -111,7 +98,7 @@ ignore_int:
     mov es, ax
     mov fs, ax
     push int_msg
-    call _printk
+    call printk
     pop eax
     pop fs
     pop es
@@ -127,11 +114,11 @@ setup_paging:
     xor eax, eax
     xor edi, edi
     cld
-    mov dword [_pg_dir], pg0+7         ;+7:p=1,r/w=1,u/s=1
-    mov dword [_pg_dir+4], pg1+7
-    mov dword [_pg_dir+8], pg2+7
-    mov dword [_pg_dir+12],pg3+7
-    mov edi, pg3+4092
+    mov dword [_pg_dir], 1000h+7         ;+7:p=1,r/w=1,u/s=1
+    mov dword [_pg_dir+4], 2000h+7
+    mov dword [_pg_dir+8], 3000h+7
+    mov dword [_pg_dir+12],4000h+7
+    mov edi, 4000h+4092
     mov eax, 0fff007h
     std
 .1:
