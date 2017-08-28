@@ -1,4 +1,5 @@
 ASM=nasm
+CC	=gcc $(RAMDISK)
 CFLAGS	=-Wall -O
 BINS=boot/bootsect.bin boot/setup.bin
 OBJS=boot/head.o init/main.o
@@ -19,7 +20,7 @@ kernel:system.elf
 	#do something to strip system.elf
 	
 system.elf:$(OBJS) #...
-	gcc -c -o $@ $(OBJS)
+	$(CC) -c -o $@ $(OBJS)
 	
 boot/head.o:boot/head.asm init/main.c
 	$(ASM) -f elf -o $@ $<
