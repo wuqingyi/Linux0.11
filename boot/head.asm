@@ -1,6 +1,6 @@
-extern stack_start
-global _idt, _gdt, _pg_dir, _tmp_floppy_area
 [BITS 32]
+extern stack_start, main, printk
+global _idt, _gdt, _pg_dir, _tmp_floppy_area
 _pg_dir:
 startup_32:
     mov eax, 10h
@@ -8,23 +8,23 @@ startup_32:
     mov es, ax
     mov fs, ax
     mov gs, ax
-    lss esp, stack_start
+    lss esp, [stack_start]
 
     call setup_idt
-    call setup_dgt
+    call setup_gdt
 
     mov eax, 10h
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
-    lss esp, stack_start
+    lss esp, [stack_start]
 
     ;check that A20 really IS enable
     xor eax, eax
-.1:  inc eax
-    mov [000000h], eax
-    cmp [100000h], eax
+.1: inc eax
+    mov dword [000000h], eax
+    cmp dword [100000h], eax
     je .1
 
     mov eax, cr0
@@ -38,9 +38,131 @@ check_x87:
     finit
     fstsw ax
     cmp al, 0
-    je .2
+    je .1
     mov eax, cr0
     xor eax, 6
     mov cr0, eax
     ret
-align 2
+align 4
+.1:
+    db 0dbh, 0e4h
+    ret
+
+setup_idt:
+    lea edx, [ignore_int]
+    mov eax, 80000h
+    mov ax, dx
+    mov dx, 8e00h
+
+    lea edi, [_idt]
+    mov ecx, 256
+rp_sidt:
+    mov [edi], eax
+    mov [edi+4], edx
+    add edi, 8
+    dec ecx
+    jne rp_sidt
+    lidt [idt_descr]
+    ret
+
+setup_gdt:
+    lgdt [gdt_descr]
+    ret
+
+times 1000h-($-$$) db 0
+pg0:
+
+times 2000h-($-$$) db 0
+pg1:
+
+times 3000h-($-$$) db 0
+pg2:
+
+times 4000h-($-$$) db 0
+pg3:
+
+times 5000h-($-$$) db 0
+_tmp_floppy_area:
+    times 1024 db 0
+
+after_page_tables:
+    push dword 0
+    push dword 0
+    push dword 0
+    push L6
+    push main
+    jmp setup_paging
+L6:
+    jmp L6
+
+int_msg:
+    db "Unknown interrupt",13, 10,0
+
+align 4
+ignore_int:
+    push eax
+    push ecx
+    push edx
+    push ds
+    push es
+    push fs
+    mov eax, 10h
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    push int_msg
+    call printk
+    pop eax
+    pop fs
+    pop es
+    pop ds
+    pop edx
+    pop ecx
+    pop eax
+    iret
+
+align 4
+setup_paging:
+    mov ecx, 1024*5
+    xor eax, eax
+    xor edi, edi
+    cld
+    mov dword [_pg_dir], pg0+7         ;+7:p=1,r/w=1,u/s=1
+    mov dword [_pg_dir+4], pg1+7
+    mov dword [_pg_dir+8], pg2+7
+    mov dword [_pg_dir+12],pg3+7
+    mov edi, pg3+4092
+    mov eax, 0fff007h
+    std
+.1:
+    stosd
+    sub eax, 1000h
+    jge .1
+    xor eax, eax
+    mov cr3, eax
+    mov eax, cr0
+    or eax, 80000000h
+    mov cr0, eax
+    ret
+
+align 4
+    dw 0
+idt_descr:
+    dw 256*8-1
+    dd _idt
+
+align 4
+    dw 0
+gdt_descr:
+    dw 256*8-1
+    dd _gdt
+
+_idt:
+    times 256 dq 0000000000000000h
+
+_gdt:
+    dq 0000000000000000h
+    dq 00c09a0000000fffh
+    dq 00c0920000000fffh
+    dq 0000000000000000h
+    times 252 dq 0000000000000000h
