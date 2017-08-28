@@ -1,8 +1,8 @@
 ASM=nasm
 CC	=gcc $(RAMDISK)
-CFLAGS	=-Wall -O
+CFLAGS	=-c -m32
 LD =ld
-LDFLAG=-melf_i386
+LDFLAG=-melf_i386 -Ttext 0x0000
 BINS=boot/bootsect.bin boot/setup.bin
 OBJS=boot/head.o init/main.o
 .PHONY: image clean
@@ -18,8 +18,9 @@ boot/bootsect.bin: boot/bootsect.asm
 boot/setup.bin: boot/setup.asm
 	$(ASM) -o $@ $<
 	
-kernel:system.elf
-	#do something to strip system.elf
+kernel:system.elf tool/build.c
+	gcc -o build tool/build.c
+	./build
 	
 system.elf:$(OBJS)
 	$(LD) $(LDFLAG) -o $@ $(OBJS)
@@ -28,7 +29,7 @@ boot/head.o:boot/head.asm
 	$(ASM) -felf -o $@ $<
 
 init/main.o:init/main.c
-	$(CC) $(CFLAGS) -m32 -o $@ $<
+	$(CC) $(CFLAGS) -o $@ $<
 
 clean:
-	rm -f $(BINS) $(OBJS)
+	rm -f $(BINS) $(OBJS) system.elf kernel build

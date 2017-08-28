@@ -69,7 +69,7 @@ char buf[1024];
 
 int main(void)
 {
-    int id = open("./kernel", O_RDONLY, 0);
+    int id = open("./system.elf", O_RDONLY, 0);
     if (id < 0)
     {
         printf("open");
@@ -99,10 +99,15 @@ int main(void)
             int poff = phdr->p_offset;
             int psize = phdr->p_filesz;
             int pos = 0;
-            int fd = open("system", O_CREAT | O_APPEND, S_IRWXU);
-            while(pos < psize && (pos-psize) < 1024)
+            int fd = open("kernel", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+            while(pos < psize)
             {
                 lseek(id, poff + pos, SEEK_SET);
+                if(psize - pos <= 1024){
+                    read(id, buf, psize - pos);
+                    write(fd, buf, psize - pos);
+                    break;
+                }
                 read(id, buf, 1024);
                 write(fd, buf, 1024);
                 pos += 1024;
