@@ -1,8 +1,8 @@
 [BITS 32]
 extern stack_start, main, printk
 global _idt, _gdt, _pg_dir, _tmp_floppy_area
-_pg_dir:
 startup_32:
+_pg_dir:
     mov eax, 10h
     mov ds, ax
     mov es, ax

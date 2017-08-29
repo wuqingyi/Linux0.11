@@ -1,4 +1,9 @@
-char stack_start[512];
+long user_stack [ 4096>>2 ] ;
+struct{
+    long * a;
+    short b;
+}stack_start = {&user_stack [4096>>2], 0x10};
+
 void printk(char *msg)
 {
 }
