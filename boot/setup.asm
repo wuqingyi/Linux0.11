@@ -182,6 +182,6 @@ idt_48:
     dw 0, 0, 0
 
 gdt_48:
-    dw 8000h            ;gdt limit=2048, 256 GDT entries
+    dw 800h            ;gdt limit=2048, 256 GDT entries
     dw 512+label_gdt, 09h     ;gdt base = 0X9xxxx
 
