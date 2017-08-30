@@ -65,6 +65,7 @@ typedef struct
     Elf32_Word p_align;  /* Segment alignment */
 } Elf32_Phdr;
 
+char hbuf[1024];
 char buf[1024];
 
 int main(void)
@@ -75,46 +76,66 @@ int main(void)
         printf("open");
         return -1;
     }
-    if (read(id, buf, sizeof(Elf32_Ehdr)) != sizeof(Elf32_Ehdr))
+    if (read(id, hbuf, sizeof(Elf32_Ehdr)) != sizeof(Elf32_Ehdr))
     {
         printf("read");
         return -1;
     }
-    Elf32_Ehdr *ehdr = (Elf32_Ehdr *)(void *)buf;
+    Elf32_Ehdr *ehdr = (Elf32_Ehdr *)(void *)hbuf;
     long offset = ehdr->e_phoff;
     int entry_size = ehdr->e_phentsize;
     int entry_nr = ehdr->e_phnum;
     lseek(id, ehdr->e_phoff, SEEK_SET);
-    if (read(id, buf, entry_size * entry_nr) != entry_size * entry_nr)
+    if (read(id, hbuf, entry_size * entry_nr) != entry_size * entry_nr)
     {
         printf("program entry");
         return -1;
     }
-    Elf32_Phdr *phdr = (Elf32_Phdr *)(void *)buf;
+    Elf32_Phdr *phdr = (Elf32_Phdr *)(void *)hbuf;
     int i = 0;
-    for (; i < entry_size; i++, phdr++)
+    int fd = open("kernel", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+    for (; i < entry_nr; i++, phdr++)
     {
-        if (phdr->p_flags == 5)
+        int poff = phdr->p_offset;
+        int voff = phdr->p_vaddr;
+        int psize = phdr->p_filesz;
+        int msize = phdr->p_memsz;
+        int readsz = 0;
+        while (readsz < psize)
         {
-            int poff = phdr->p_offset;
-            int psize = phdr->p_filesz;
-            int pos = 0;
-            int fd = open("kernel", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
-            while(pos < psize)
+            lseek(id, poff + readsz, SEEK_SET);
+            lseek(fd, voff + readsz, SEEK_SET);
+            if (psize - readsz <= 1024)
             {
-                lseek(id, poff + pos, SEEK_SET);
-                if(psize - pos <= 1024){
-                    read(id, buf, psize - pos);
-                    write(fd, buf, psize - pos);
+                read(id, buf, psize - readsz);
+                write(fd, buf, psize - readsz);
+                break;
+            }
+            read(id, buf, 1024);
+            write(fd, buf, 1024);
+            readsz += 1024;
+        }
+        if (msize > psize)
+        {
+            readsz = psize;
+            for (int j = 0; j < 1024; j++)
+            {
+                buf[j] = 0;
+            }
+            while (readsz < msize)
+            {
+                lseek(fd, voff + readsz, SEEK_SET);
+                if (msize - readsz <= 1024)
+                {
+                    write(fd, buf, msize - readsz);
                     break;
                 }
-                read(id, buf, 1024);
                 write(fd, buf, 1024);
-                pos += 1024;
+                readsz += 1024;
             }
-            close(fd);
-            close(id);
-            break;
         }
     }
+    close(fd);
+    close(id);
+    return 0;
 }

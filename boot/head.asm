@@ -69,13 +69,21 @@ setup_gdt:
     lgdt [gdt_descr]
     ret
 
+
+times 0x1000 - ($ - $$) db 0
+pg0:
+times 0x2000 - ($ - $$) db 0
+pg1: 
+times 0x3000 - ($ - $$) db 0
+pg2: 
+times 0x4000 - ($ - $$) db 0
+pg3:
+times 0x5000 - ($ - $$) db 0
+
 _tmp_floppy_area:
     times 1024 db 0
 
 after_page_tables:
-    push dword 0
-    push dword 0
-    push dword 0
     push L6
     push main
     jmp setup_paging
