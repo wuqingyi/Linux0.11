@@ -93,7 +93,7 @@ int main(void)
     }
     Elf32_Phdr *phdr = (Elf32_Phdr *)(void *)hbuf;
     int i = 0;
-    int fd = open("kernel", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+    int fd = open("kernel.bin", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
     for (; i < entry_nr; i++, phdr++)
     {
         int poff = phdr->p_offset;

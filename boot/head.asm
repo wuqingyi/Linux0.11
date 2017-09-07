@@ -106,7 +106,7 @@ ignore_int:
     mov es, ax
     mov fs, ax
     push int_msg
-    call printk
+    call disp_str
     pop eax
     pop fs
     pop es
@@ -122,11 +122,11 @@ setup_paging:
     xor eax, eax
     xor edi, edi
     cld
-    mov dword [_pg_dir], 1000h+7         ;+7:p=1,r/w=1,u/s=1
-    mov dword [_pg_dir+4], 2000h+7
-    mov dword [_pg_dir+8], 3000h+7
-    mov dword [_pg_dir+12],4000h+7
-    mov edi, 4000h+4092
+    mov dword [_pg_dir], pg0+7         ;+7:p=1,r/w=1,u/s=1
+    mov dword [_pg_dir+4], pg1+7
+    mov dword [_pg_dir+8], pg2+7
+    mov dword [_pg_dir+12],pg3+7
+    mov edi, pg3+4092
     mov eax, 0fff007h
     std
 .1:

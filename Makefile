@@ -9,10 +9,10 @@ OBJS=boot/head.o init/main.o
 .PHONY: image clean
 
 #系统模块现在设置为240个扇区，不一定足够！！！
-image:$(BINS) kernel
+image:$(BINS) kernel.bin
 	dd if=boot/bootsect.bin of=a.img bs=512 count=1         conv=notrunc
 	dd if=boot/setup.bin    of=a.img bs=512 count=4   seek=1 conv=notrunc
-	dd if=kernel            of=a.img bs=512 count=240 seek=5 conv=notrunc
+	dd if=kernel.bin            of=a.img bs=512 count=240 seek=5 conv=notrunc
 
 boot/bootsect.bin: boot/bootsect.asm
 	$(ASM) -o $@ $<
@@ -21,7 +21,7 @@ boot/setup.bin: boot/setup.asm
 	$(ASM) -o $@ $<
 
 #-gstabs 设置添加调试信息	
-kernel:system.elf tool/build.c
+kernel.bin:system.elf tool/build.c
 	gcc -o build tool/build.c -gstabs
 	./build
 	
@@ -35,4 +35,4 @@ init/main.o:init/main.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 clean:
-	rm -f $(BINS) $(OBJS) system.elf kernel build
+	rm -f $(BINS) $(OBJS) system.elf kernel.bin build
