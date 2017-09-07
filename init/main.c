@@ -1,11 +1,11 @@
 
 
-extern long rd_init(long mem_start, int length);
+// extern long rd_init(long mem_start, int length);
 extern void mem_init(long start, long end);
-extern void blk_dev_init(void);
-extern void chr_dev_init(void);
-extern void hd_init(void);
-extern void floppy_init(void);
+// extern void blk_dev_init(void);
+// extern void chr_dev_init(void);
+// extern void hd_init(void);
+// extern void floppy_init(void);
 /*
  * This is set up by the setup-routine at boot-time
  */
@@ -49,7 +49,7 @@ void main(void)
     sched_init();
     // buffer_init(buffer_memory_end);
     // hd_init();
-    floppy_init();
+    // floppy_init();
     sti();
     move_to_user_mode();
     if (!fork())
