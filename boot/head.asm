@@ -106,7 +106,7 @@ ignore_int:
     mov es, ax
     mov fs, ax
     push int_msg
-    call disp_str
+    call printk
     pop eax
     pop fs
     pop es
